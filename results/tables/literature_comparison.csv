@@ -1,0 +1,12 @@
+method,year,dataset,compression,metric,score,notes,source
+MesoNet,2018,FF++,c23,Accuracy (%),83.10,Face-crop detector,Rossler et al. ICCV 2019
+Xception (face crop),2019,FF++,c23,Accuracy (%),95.73,FF++ standard baseline,Rossler et al. ICCV 2019
+Xception (face crop),2019,FF++,raw,Accuracy (%),99.26,Upper bound on clean FF++ data,Rossler et al. ICCV 2019
+Xception (full image),2019,FF++,c23,Accuracy (%),74.78,No face crop,Rossler et al. ICCV 2019
+EfficientNet-B4,2023,FF++,c23,AUC (%),95.59,ICICIS 2023; farkli egitim kurulumu,Yasser et al. ICICIS 2023
+XceptionNet,2023,FF++,c23,AUC (%),89.91,Same study different setup,Yasser et al. ICICIS 2023
+LFWS (Xception+fusion),2026,FF++,c23,Avg. AUC (%),78.60,8 benchmark ortalamasi; LFWS yontemi,Baek et al. arXiv:2605.29092
+Bizim calisma (baseline),2026,FF++ subset,c23,AUC,1.00,20 video / 60 test frame,This project
+Bizim calisma (JPEG q10),2026,FF++ subset,c23+JPEG,AUC,0.98,Ek JPEG bozulmasi,This project
+Bizim calisma (blur k11),2026,FF++ subset,c23+blur,AUC,0.95,Ek Gaussian blur,This project
+Bizim calisma (noise s40),2026,FF++ subset,c23+noise,AUC,0.56,Ek Gaussian noise,This project

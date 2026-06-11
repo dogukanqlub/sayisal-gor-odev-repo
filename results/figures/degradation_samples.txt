@@ -1,0 +1,4 @@
+original
+jpeg_q10
+blur_k11
+noise_s40

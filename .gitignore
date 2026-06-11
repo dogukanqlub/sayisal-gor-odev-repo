@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Büyük veri ve model dosyaları (lokalde kalır)
+data/
+models/
+_ff_repo/
+
+# Matplotlib cache
+results/.mpl/
+
+# Rapor dosyaları (lokalde)
+*.docx
