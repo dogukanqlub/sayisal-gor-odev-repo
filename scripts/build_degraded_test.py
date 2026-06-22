@@ -6,11 +6,14 @@ import sys
 from pathlib import Path
 
 import cv2
+import numpy as np
 from tqdm import tqdm
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
+from adversarial import build_adversarial_sets
+from config import RANDOM_SEED
 from degrade import apply_degradation, degradation_folders
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -38,14 +41,23 @@ def main() -> None:
         type=Path,
         default=PROJECT_ROOT / "data" / "degraded",
     )
+    parser.add_argument(
+        "--checkpoint",
+        type=Path,
+        default=PROJECT_ROOT / "models" / "full_c23.p",
+        help="Required for FGSM adversarial sets",
+    )
     parser.add_argument("--limit", type=int, default=None, help="Debug: first N images")
+    parser.add_argument("--skip-adversarial", action="store_true")
+    parser.add_argument("--seed", type=int, default=RANDOM_SEED)
     args = parser.parse_args()
 
     samples = read_split(args.split)
     if args.limit is not None:
         samples = samples[: args.limit]
 
-    folders = degradation_folders()
+    rng = np.random.default_rng(args.seed)
+    folders = degradation_folders(include_adversarial=False)
 
     for folder_name, ops in folders.items():
         out_dir = args.output_root / folder_name
@@ -61,7 +73,7 @@ def main() -> None:
 
             degraded = image
             for kind, level in ops:
-                degraded = apply_degradation(degraded, kind, level)
+                degraded = apply_degradation(degraded, kind, level, rng=rng)
 
             rel_name = src_path.relative_to(PROJECT_ROOT / "data" / "frames")
             dst_path = out_dir / rel_name
@@ -73,7 +85,17 @@ def main() -> None:
         split_path = PROJECT_ROOT / "data" / "splits" / f"test_{folder_name}.txt"
         split_path.write_text("\n".join(split_lines) + "\n")
 
-    print(f"built {len(folders)} degraded test sets under {args.output_root}")
+    if not args.skip_adversarial:
+        print("Building FGSM adversarial sets (label-aware evasion)...")
+        build_adversarial_sets(
+            samples=samples,
+            output_root=args.output_root,
+            checkpoint=args.checkpoint,
+            project_root=PROJECT_ROOT,
+        )
+
+    total = len(folders) + (0 if args.skip_adversarial else 4)
+    print(f"built {total} degraded test sets under {args.output_root}")
 
 
 if __name__ == "__main__":

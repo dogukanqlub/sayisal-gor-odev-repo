@@ -31,7 +31,7 @@ def main() -> None:
     if args.output_csv.exists():
         args.output_csv.unlink()
 
-    folders = degradation_folders()
+    folders = degradation_folders(include_adversarial=True)
     rows = []
 
     for folder_name in folders:
