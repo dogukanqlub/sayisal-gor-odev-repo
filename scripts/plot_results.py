@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -122,6 +123,44 @@ def plot_category_heatmap(df: pd.DataFrame, out_path: Path) -> None:
     plt.close(fig)
 
 
+def plot_solution_comparison(csv_path: Path, out_path: Path) -> None:
+    df = pd.read_csv(csv_path)
+    methods = ["baseline", "tta", "temporal", "freq_fusion"]
+    colors = {"baseline": "#4C78A8", "tta": "#F58518", "temporal": "#54A24B", "freq_fusion": "#B279A2"}
+    labels_map = {
+        "baseline": "Baseline",
+        "tta": "TTA",
+        "temporal": "Temporal",
+        "freq_fusion": "Freq fusion",
+    }
+
+    splits = df["split"].unique()
+    labels = [s.replace("test_", "").replace(".txt", "") for s in splits]
+    n_methods = len(methods)
+    x = np.arange(len(splits))
+    width = 0.18
+
+    fig, ax = plt.subplots(figsize=(11, 4))
+    for idx, method in enumerate(methods):
+        vals = []
+        for split in splits:
+            row = df[(df["split"] == split) & (df["method"] == method)]
+            vals.append(float(row.iloc[0]["auc"]) if not row.empty else 0.0)
+        offset = (idx - (n_methods - 1) / 2) * width
+        ax.bar(x + offset, vals, width, label=labels_map[method], color=colors[method])
+
+    ax.set_xticks(x, labels, rotation=15, ha="right")
+    ax.set_ylabel("AUC")
+    ax.set_title("Çözüm önerileri — kritik koşullar")
+    ax.set_ylim(0, 1.05)
+    ax.legend(fontsize=8)
+    ax.grid(True, axis="y", alpha=0.3)
+    fig.tight_layout()
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=300)
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -151,6 +190,10 @@ def main() -> None:
     plot_line(df, "fgsm_e", FGSM_EPSILONS, "FGSM epsilon vs AUC", out / "adversarial_fgsm_auc.png")
     plot_worst_bar(df, out / "worst_case_auc.png")
     plot_category_heatmap(df, out / "category_heatmap.png")
+    plot_solution_comparison(
+        PROJECT_ROOT / "results" / "tables" / "solution_comparison.csv",
+        out / "solution_tta_comparison.png",
+    )
     print(f"figures saved -> {out}")
 
 
